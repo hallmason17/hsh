@@ -4,16 +4,19 @@ import Control.Exception (IOException, handle)
 import Control.Monad (forever)
 import Data.Text
 import qualified Data.Text.IO as TIO
+import System.Environment (getEnv)
 import System.IO (hFlush, stdout)
 import System.Process (callProcess)
 
 data Action = Command Text [Text]
 
 handler :: IOException -> IO ()
-handler e = putStrLn "Invalid command, try again."
+handler _ = putStrLn "Invalid command, try again."
 
 logCommandToFile :: Text -> IO ()
-logCommandToFile cmd = TIO.appendFile "~/.hsh_history" (cmd `append` pack "\n")
+logCommandToFile cmd = do
+  homeDir <- getEnv "HOME"
+  TIO.appendFile (homeDir ++ "/.hsh_history") (cmd `append` pack "\n")
 
 getCommandAndArgs :: String -> (String, [String])
 getCommandAndArgs line = (cmd, args)
