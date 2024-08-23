@@ -13,7 +13,7 @@ handler :: IOException -> IO ()
 handler e = putStrLn "Invalid command, try again."
 
 logCommandToFile :: Text -> IO ()
-logCommandToFile cmd = TIO.appendFile ".hsh_history" (cmd `append` pack "\n")
+logCommandToFile cmd = TIO.appendFile "~/.hsh_history" (cmd `append` pack "\n")
 
 getCommandAndArgs :: String -> (String, [String])
 getCommandAndArgs line = (cmd, args)
