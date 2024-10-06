@@ -4,10 +4,12 @@ import Control.Exception (IOException, handle, try)
 import Control.Monad (forever)
 import Data.List.Split (splitOn)
 import Data.Text (Text, append, pack, unpack)
-import qualified Data.Text.IO as TIO
+import qualified Data.Text.IO as TIO (appendFile, getLine)
 import System.Environment (getEnv)
+import System.Exit (exitSuccess)
 import System.IO
 import System.IO.Error (isDoesNotExistError)
+import System.Posix.Directory (changeWorkingDirectory)
 import System.Process (callProcess)
 
 data Action = Command Text [Text]
@@ -24,7 +26,7 @@ getCurrentBranchIfExist :: FilePath -> IO String
 getCurrentBranchIfExist cwd = do
   let gitDir = cwd ++ "/.git/HEAD"
   contents <- handle readHandler $ readFile gitDir
-  return $ Prelude.head $ splitOn "\n" $ Prelude.last $ splitOn "/" contents
+  return $ head $ splitOn "\n" $ last $ splitOn "/" contents
 
 logCommandToFile :: Text -> IO ()
 logCommandToFile cmd = do
@@ -34,13 +36,16 @@ logCommandToFile cmd = do
 getCommandAndArgs :: String -> (String, [String])
 getCommandAndArgs line = (cmd, args)
   where
-    wrds = Prelude.words line
-    cmd = Prelude.head wrds
-    args = Prelude.tail wrds
+    wrds = words line
+    cmd = head wrds
+    args = tail wrds
 
 maybeRunCommand :: String -> [String] -> IO ()
 maybeRunCommand cmd args = do
-  handle handler $ callProcess cmd args
+  case cmd of
+    "cd" -> changeWorkingDirectory $ head args
+    "exit" -> exitSuccess
+    _ -> handle handler $ callProcess cmd args
 
 prompt :: IO Text
 prompt = do
