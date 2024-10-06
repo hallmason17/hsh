@@ -19,7 +19,7 @@ handler _ = putStrLn "Invalid command, try again."
 
 readHandler :: IOError -> IO String
 readHandler e
-  | isDoesNotExistError e = do putStrLn "No git repository found in this directory."; return ""
+  | isDoesNotExistError e = do return ""
   | otherwise = do putStrLn "An error occurred."; return ""
 
 getCurrentBranchIfExist :: FilePath -> IO String
@@ -51,8 +51,9 @@ prompt :: IO Text
 prompt = do
   maybeBranch <- try (getCurrentBranchIfExist ".") :: IO (Either IOException String)
   case maybeBranch of
-    Left _ -> putStr "\ESC[93m~~> \ESC[0m"
-    Right branch -> putStr ("\ESC[93m~~> \ESC[30m" ++ "(" ++ branch ++ ")" ++ "\ESC[0m")
+    Left _ -> putStr "\ESC[93m> \ESC[0m"
+    Right "" -> putStr "\ESC[93m> \ESC[0m"
+    Right branch -> putStr ("\ESC[93m> \ESC[30m" ++ "(" ++ branch ++ ")" ++ "\ESC[0m")
   hFlush stdout
   TIO.getLine
 
