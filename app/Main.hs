@@ -3,7 +3,7 @@ module Main where
 import Control.Exception (IOException, handle, try)
 import Control.Monad (forever)
 import Data.List.Split (splitOn)
-import Data.Text (Text, append, pack, unpack)
+import Data.Text (Text, append, pack, strip, unpack)
 import qualified Data.Text.IO as TIO (appendFile, getLine)
 import System.Environment (getEnv)
 import System.Exit (exitSuccess)
@@ -15,7 +15,9 @@ import System.Process (callProcess)
 data Action = Command Text [Text]
 
 handler :: IOException -> IO ()
-handler _ = putStrLn "Invalid command, try again."
+handler x = print $ unwords [head (splitOn ":" $ show x), unpack $ strip $ pack $ last $ splitOn ":" $ show x]
+
+-- handler _ = putStrLn "Invalid command, try again."
 
 readHandler :: IOError -> IO String
 readHandler e
@@ -43,7 +45,7 @@ getCommandAndArgs line = (cmd, args)
 maybeRunCommand :: String -> [String] -> IO ()
 maybeRunCommand cmd args = do
   case cmd of
-    "cd" -> changeWorkingDirectory $ head args
+    "cd" -> handle handler $ changeWorkingDirectory $ head args
     "exit" -> exitSuccess
     _ -> handle handler $ callProcess cmd args
 
